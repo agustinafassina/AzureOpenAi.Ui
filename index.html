@@ -1,63 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<title>Chat with GPT</title>
-<link rel="stylesheet" href="css/styles.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-</head>
-<body>
+  <head>
+  <meta charset="UTF-8" />
+  <title>Chat with GPT</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  </head>
+  <body>
 
-<h2>Chat with GPT <i class="fa-regular fa-user"></i></h2>
-<div id="chatBox"></div>
+  <h2>Chat with GPT <i class="fa-regular fa-user"></i></h2>
+  <div id="chatBox"></div>
 
-<div id="inputContainer">
-  <input type="text" id="userInput" placeholder="Type your message..." />
-  <button id="sendBtn" onclick="enviarMensaje()">
-    Send <i class="fa-solid fa-pen-to-square"></i></i>
-  </button>
-</div>
+  <div id="inputContainer">
+    <input type="text" id="userInput" placeholder="Type your message..." />
+    <button id="sendBtn" onclick="enviarMensaje()">
+      Send <i class="fa-solid fa-pen-to-square"></i></i>
+    </button>
+  </div>
 
-<script>
-const apiUrl = "http://localhost:5142/api/v1/Chat";
+  <script>
+  const apiUrl = "http://localhost:5142/api/v1/Chat";
 
-async function enviarMensaje() {
-  const input = document.getElementById("userInput");
-  const message = input.value.trim();
-  if (!message) return;
+  async function enviarMensaje() {
+    const input = document.getElementById("userInput");
+    const message = input.value.trim();
+    if (!message) return;
 
-  const chatBox = document.getElementById("chatBox");
+    const chatBox = document.getElementById("chatBox");
 
-  chatBox.innerHTML += `<div style="text-align: right; margin-bottom: 8px;">
-                          <div style="display: inline-block; background:#DCF8C6; padding:8px; border-radius:8px;">
-                            <strong>Tu:</strong> ${message}
-                          </div>
-                        </div>`;
-
-  try {
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: message })
-    });
-    const data = await response.json();
-
-    chatBox.innerHTML += `<div style="margin-bottom: 8px;">
-                            <div style="display: inline-block; background:#E5E5EA; padding:8px; border-radius:8px;">
-                              <strong>GPT:</strong> ${data.reply}
+    chatBox.innerHTML += `<div style="text-align: right; margin-bottom: 8px;">
+                            <div style="display: inline-block; background:#DCF8C6; padding:8px; border-radius:8px;">
+                              <strong>Tu:</strong> ${message}
                             </div>
                           </div>`;
-  } catch (error) {
-    chatBox.innerHTML += `<div style="margin-bottom: 8px; color:red;">
-                            Error: ${error.message}
-                          </div>`;
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: message })
+      });
+      const data = await response.json();
+
+      chatBox.innerHTML += `<div style="margin-bottom: 8px;">
+                              <div style="display: inline-block; background:#E5E5EA; padding:8px; border-radius:8px;">
+                                <strong>GPT:</strong> ${data.reply}
+                              </div>
+                            </div>`;
+    } catch (error) {
+      chatBox.innerHTML += `<div style="margin-bottom: 8px; color:red;">
+                              Error: ${error.message}
+                            </div>`;
+    }
+
+    input.value = "";
+    chatBox.scrollTop = chatBox.scrollHeight;
   }
+  </script>
 
-  input.value = "";
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-</script>
-
-</body>
+  </body>
 </html>
