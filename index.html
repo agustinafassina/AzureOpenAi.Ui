@@ -15,25 +15,51 @@
   <div id="inputContainer">
     <input type="text" id="userInput" placeholder="Type your message..." />
     <button id="sendBtn" onclick="enviarMensaje()">
-      Send <i class="fa-solid fa-pen-to-square"></i></i>
+      Send <i class="fa-solid fa-pen-to-square"></i>
     </button>
   </div>
 
   <script>
   const apiUrl = "http://localhost:5142/api/v1/Chat";
 
+  // Builds the message with textContent so user or model text is never parsed as HTML (prevents XSS).
+  function appendMessage(author, text, type) {
+    const chatBox = document.getElementById("chatBox");
+    const row = document.createElement("div");
+    row.style.marginBottom = "8px";
+
+    if (type === "error") {
+      row.style.color = "red";
+      row.textContent = `Error: ${text}`;
+    } else if (type === "typing") {
+      row.style.cssText = "margin-bottom: 8px; color: #888; font-style: italic;";
+      row.textContent = text;
+    } else {
+      if (type === "user") row.style.textAlign = "right";
+      const bubble = document.createElement("div");
+      bubble.style.cssText = `display: inline-block; padding: 8px; border-radius: 8px; white-space: pre-wrap; background: ${type === "user" ? "#DCF8C6" : "#E5E5EA"};`;
+      const label = document.createElement("strong");
+      label.textContent = `${author}:`;
+      bubble.append(label, " ", text);
+      row.appendChild(bubble);
+    }
+
+    chatBox.appendChild(row);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    return row;
+  }
+
   async function enviarMensaje() {
     const input = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
     const message = input.value.trim();
-    if (!message) return;
+    if (!message || sendBtn.disabled) return;
 
-    const chatBox = document.getElementById("chatBox");
+    input.value = "";
+    appendMessage("Tu", message, "user");
 
-    chatBox.innerHTML += `<div style="text-align: right; margin-bottom: 8px;">
-                            <div style="display: inline-block; background:#DCF8C6; padding:8px; border-radius:8px;">
-                              <strong>Tu:</strong> ${message}
-                            </div>
-                          </div>`;
+    sendBtn.disabled = true;
+    const typingRow = appendMessage("", "GPT está escribiendo...", "typing");
 
     try {
       const response = await fetch(apiUrl, {
@@ -41,22 +67,30 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: message })
       });
+      if (!response.ok) {
+        throw new Error(`The API responded with ${response.status} ${response.statusText}`.trim());
+      }
       const data = await response.json();
+      if (typeof data.reply !== "string") {
+        throw new Error("The API response does not include a 'reply' field.");
+      }
 
-      chatBox.innerHTML += `<div style="margin-bottom: 8px;">
-                              <div style="display: inline-block; background:#E5E5EA; padding:8px; border-radius:8px;">
-                                <strong>GPT:</strong> ${data.reply}
-                              </div>
-                            </div>`;
+      appendMessage("GPT", data.reply, "bot");
     } catch (error) {
-      chatBox.innerHTML += `<div style="margin-bottom: 8px; color:red;">
-                              Error: ${error.message}
-                            </div>`;
+      appendMessage("", error.message, "error");
+    } finally {
+      typingRow.remove();
+      sendBtn.disabled = false;
+      input.focus();
     }
-
-    input.value = "";
-    chatBox.scrollTop = chatBox.scrollHeight;
   }
+
+  document.getElementById("userInput").addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.isComposing) {
+      event.preventDefault();
+      enviarMensaje();
+    }
+  });
   </script>
 
   </body>

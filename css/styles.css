@@ -33,6 +33,10 @@ h2 { text-align: center; margin-bottom: 10px; }
 #sendBtn:hover {
   background-color: #45a049;
 }
+#sendBtn:disabled {
+  background-color: #9e9e9e;
+  cursor: not-allowed;
+}
 #inputContainer {
   display: flex;
   align-items: stretch;
